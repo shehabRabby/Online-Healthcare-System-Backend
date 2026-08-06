@@ -27,12 +27,15 @@ app.use('/api/v1/auth', AuthRoutes)
 
 // Basic route
 app.get('/', async (req: Request, res: Response) => {
-    res.status(httpStatus.OK).json({
-        success: true,
-        message: 'Welcome to PH Healthcare System Backend',
-    })
-})
-
+  res.status(httpStatus.OK).json({
+    success: true,
+    message: 'Welcome to Online Healthcare System Backend',
+    author: {
+      name: 'MD. Shehab Al Rabby',
+      role: 'Full-Stack Developer',
+    },
+  });
+});
 app.use(globalErrorHandler)
 app.use(notFound)
 
