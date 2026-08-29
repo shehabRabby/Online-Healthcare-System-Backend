@@ -1,0 +1,13 @@
+M2:
+1.Formater vs Formater
+2.Eslint, Oxlint, Biome
+3.Prettier
+4.Biome-Linter+Formatter
+5.Google Login
+    Frontend->Google Login - Google Id Token
+    Google Id Token -> Backend API -> Access Token, Refresh Token
+6.Business Logic Handle, Edge case -> Google Login, Credentain login
+7.Credentail User Login With Google
+8.Only Google User With No Password Cannot Login with Credentail
+9.Google Cloude Console
+10.Google Auth Library
