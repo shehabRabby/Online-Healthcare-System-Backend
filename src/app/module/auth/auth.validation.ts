@@ -1,4 +1,4 @@
-import z from "zod";
+import z, { email } from "zod";
 
 const patientRegistrationZodSchema = z.object({
   name: z
@@ -8,11 +8,11 @@ const patientRegistrationZodSchema = z.object({
   email: z.email(),
   password: z
     .string()
-    .min(8, "Minimum 8 Characters long")
-    .regex(/[A-Z]/, "Must contain one Upercase and")
-    .regex(/[a-z]/, "one lowercase alphabet and")
-    .regex(/[0-9]/, "Also one digit and")
-    .regex(/[^A-Za-z0-9]/, "one special Character"),
+    .min(8, "Password must contain Minimum 8 Characters long")
+    .regex(/[A-Z]/, "Password must contain one Upercase letter")
+    .regex(/[a-z]/, "Password must contain one lowercase letter")
+    .regex(/[0-9]/, "Password must contain one digit")
+    .regex(/[^A-Za-z0-9]/, "Password must contain one special Character"),
   patient: z
     .object({
       contactNumber: z.string().optional(),
@@ -20,6 +20,17 @@ const patientRegistrationZodSchema = z.object({
     .optional(),
 });
 
-export const PatientValidation = {
-    patientRegistrationZodSchema
-}
+const LoginZodSchema = z.object({
+  email: z.email(),
+  password: z
+    .string()
+    .min(8, "Password must contain Minimum 8 Characters long")
+    .regex(/[A-Z]/, "Password must contain one Upercase letter")
+    .regex(/[a-z]/, "Password must contain one lowercase letter")
+    .regex(/[0-9]/, "Password must contain one digit")
+    .regex(/[^A-Za-z0-9]/, "Password must contain one special Character"),
+});
+
+export const UserValidation = {
+  patientRegistrationZodSchema,LoginZodSchema
+};

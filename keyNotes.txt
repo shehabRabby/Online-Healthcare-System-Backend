@@ -1,4 +1,4 @@
-M2:
+D2:
 1.Formater vs Formater
 2.Eslint, Oxlint, Biome
 3.Prettier
@@ -11,3 +11,10 @@ M2:
 8.Only Google User With No Password Cannot Login with Credentail
 9.Google Cloude Console
 10.Google Auth Library
+
+
+D3:
+1.Data Validation And Sanitization 
+2.Zod
+3.Zod Schema and Types
+4.Seed Super Admin, Admin, Doctor
