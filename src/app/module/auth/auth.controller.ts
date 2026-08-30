@@ -6,7 +6,6 @@ import type { IRequestUser } from "./auth.interface";
 import { AuthService } from "./auth.service";
 import z from "zod";
 
-
 const registerPatient = catchAsync(async (req: Request, res: Response) => {
   //   const payload = PatientValidation.patientRegistrationZodSchema.safeParse(
   //     req.body,
@@ -160,10 +159,36 @@ const googleLogin = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const forgetPassword = catchAsync(async (req: Request, res: Response) => {
+  const payload = req.body;
+   await AuthService.forgetPassword(payload);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: `OTP Sent Email : ${payload.email}`,
+    data: null,
+  });
+});
+
+const resetPassword = catchAsync(async (req: Request, res: Response) => {
+  const payload = req.body;
+  await AuthService.resetPassword(payload);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Password Changed Successfully",
+    data: null,
+  });
+});
+
 export const AuthController = {
   registerPatient,
   loginUser,
   getMe,
   refreshToken,
   googleLogin,
+  forgetPassword,
+  resetPassword,
 };

@@ -18,3 +18,21 @@ D3:
 2.Zod
 3.Zod Schema and Types
 4.Seed Super Admin, Admin, Doctor
+
+
+D4:
+1.Forget/Reset Password
+2.OTP 6 digit
+3.Crypto randomInt(min,max)
+4.Redis
+5.In Memory DB
+6.Temporary Data Storing
+7.Fast Data Retrieve
+8.OTP verify
+9.Password change
+10.Gmail & Nodemailer
+11.Google App Password and  2 Step verification
+12.Transporter send email
+13.Htmk -> view engine -> ejs
+14.html tage -> dynamic value use this -> <h2> <%= OTP %> </h2>
+15.Template file  use ejs.renderFiler(templatePath,tempData)
