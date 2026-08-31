@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: 80px auto;
+            padding: 40px;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            color: #1e293b;
+        }
+
+        p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .otp {
+            display: inline-block;
+            margin: 20px 0;
+            padding: 15px 30px;
+            background-color: #eff6ff;
+            color: #2563eb;
+            border-radius: 8px;
+            font-size: 30px;
+            font-weight: bold;
+            letter-spacing: 6px;
+        }
+
+        .footer {
+            margin-top: 20px;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h2>Email Verification Request</h2>
+        <p>Hello <%= name %>, we received a request to verify you email for <%= email%></p>
+        <p> Use the OTP below to verify you email.</p>
+        <h3 class="otp"><%= OTP %></h3>
+        <p>This OTP is valid for a limited time <%= expirationMinutes %> minutes.Please do not share it with anyone. If you did not request a email verification, Please ignoe this email.</p>
+        <div class="footer">
+            © 2026 Ohline-Healthcare. All rights reserved.
+        </div>
+
+    </div>
+
+</body>
+</html>
+
