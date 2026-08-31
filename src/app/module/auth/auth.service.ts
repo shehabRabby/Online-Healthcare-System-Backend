@@ -623,3 +623,4 @@ export const AuthService = {
   resetPassword,
   verifyPatientEmail,
 };
+ 
