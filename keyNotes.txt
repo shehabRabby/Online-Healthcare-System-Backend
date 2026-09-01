@@ -36,3 +36,24 @@ D4:
 13.Htmk -> view engine -> ejs
 14.html tage -> dynamic value use this -> <h2> <%= OTP %> </h2>
 15.Template file  use ejs.renderFiler(templatePath,tempData)
+
+
+
+D5:
+1.Regustration process with Email verification
+2.Register Api -> User data -> pass hashing -> user data -> redis -> otp -> redis -> otp email 
+3.otp verify -> otp verified -> redis user data -> actual db store -> auto login buy cookies set
+4.redis object / array => stringify
+5.redis data -> parse
+
+6.Image Upload -> Cloudinary and Multer
+7.Multer-> Middleware -> form data handel specially file handler
+8.Multer setup -> storage -> multer memory storage (RAM)
+9.Upload function => upload.single(fildName),upload.array
+10.Cloudinary configuration, cloude_name, api_key, api_secret
+11.Cloudinary build function upload stream(buffer)
+12.upload.stream => callback pattern promise handler -> async await & promise
+13.secure_url, publicId => db store
+14.previous image delete from cloudinary 
+15.destroyer() async await for deleteing previous image secure_url
+
