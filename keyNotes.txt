@@ -57,3 +57,21 @@ D5:
 14.previous image delete from cloudinary 
 15.destroyer() async await for deleteing previous image secure_url
 
+
+
+D6:
+1.Bkash Integration
+2.Appointment Payment workflow
+        Appointment(pending)payment(unpaid) => 
+        -> bkash url 
+        -> frontend programmatic redirect bkash url 
+        -> bkash UI -> payment compelete 
+        -> baclend callback api url 
+        -> programmatic redirect to frontend
+3.Bkash API = Id Token
+4./checkout/grant => id token, refresh token => redis store
+5.create payment => bkash url
+6.Bkash Callback url => bkash payment execute 
+            -> trx Id
+            -> database Update payment(paid), Appointment(confirm)
+7.Backend callback api => programmatic redirect => frontend

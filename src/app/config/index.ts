@@ -46,4 +46,6 @@ export default {
   bkash_password: process.env.BKASH_PASSWORD!,
   bkash_app_key: process.env.BKASH_APP_KEY!,
   bkash_app_secret: process.env.BKASH_APP_SECRET!,
+
+  bkash_callback_url: process.env.BKASH_CALLBACK_URL!,
 };
