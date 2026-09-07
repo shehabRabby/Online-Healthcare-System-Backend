@@ -5,6 +5,8 @@ import { Role } from "../../../generated/prisma/enums";
 
 const router = Router();
 
+
+
 router.post(
   "/book-appointment",
   auth(Role.PATIENT),
@@ -14,6 +16,11 @@ router.post(
   "/pay-appointment",
   auth(Role.PATIENT),
   AppointmentController.payAppointment,
+);
+router.post(
+  "/cancel-appointment",
+  auth(Role.PATIENT, Role.ADMIN, Role.SUPER_ADMIN),
+  AppointmentController.cancelAppointment,
 );
 
 // book appointment callback route

@@ -11,6 +11,7 @@ import {
 import { RequestUser } from "../../middleware/checkAuth";
 import { error } from "node:console";
 import { exitCode } from "node:process";
+import crypto from "crypto";
 
 const bookAppointment = async (payload: any, user: RequestUser) => {
   const transactionResult = await prisma.$transaction(async (tx) => {
@@ -292,7 +293,7 @@ const cancleAppointment = async (payload: any) => {
     }
 
     const bkashRefundPaymentResponse = await fetch(
-      `${config.bkash_base_url}/v2/tokenized-checkout/refund/payment/transaction`,
+      `${config.bkash_base_url}/tokenized/checkout/payment/refund`,
       {
         method: "POST",
         headers: {
@@ -302,25 +303,29 @@ const cancleAppointment = async (payload: any) => {
           "X-APP-Key": config.bkash_app_key,
         },
         body: JSON.stringify({
-          paymentId: existingAppointment.payment?.bkashPaymentId,
-          trxId: existingAppointment.payment?.bkashTrxId,
-          refundAmount: existingAppointment.payment?.amount,
-          sku: "test",
+          paymentID: existingAppointment.payment?.bkashPaymentId,
+          trxID: existingAppointment.payment?.bkashTrxId,
+          amount: existingAppointment.payment?.amount.toString(),
+          sku: "Appointment Cancellation",
           reason: "Patient Cancelled the Appointment",
         }),
       },
     );
+
     const bkashRefundPaymentResult = await bkashRefundPaymentResponse.json();
+    console.log({ bkashRefundPaymentResult });
 
     const updatedPayment = await tx.payment.update({
       where: {
         appointmentId: existingAppointment.id,
       },
       data: {
-        refundTrxId: bkashRefundPaymentResult.refundTrxId,
+        refundTrxId: bkashRefundPaymentResult.refundTrxID,
         refundAt: bkashRefundPaymentResult.completedTime,
-        refundAmount: bkashRefundPaymentResult.refundAmount,
-        refundReason: bkashRefundPaymentResult.reason,
+        refundAmount: bkashRefundPaymentResult.amount,
+        refundReason: "Patient Cancelled the Appointment",
+        status: PaymentStatus.REUNDED,
+        gatewayResponse: bkashRefundPaymentResult,
       },
     });
 
