@@ -75,3 +75,31 @@ D6:
             -> trx Id
             -> database Update payment(paid), Appointment(confirm)
 7.Backend callback api => programmatic redirect => frontend
+
+
+
+
+D7:
+1.Implementation of Appointment and payment
+2.Bkash Field added
+3.Create Appointment During Book Appointment
+4.Updating Appointment and Payment After Pay With Bkash Callback function
+5.Creating Payment dunction for Unpaid Appointment Which wash already booked
+6.Refund Payment for cancelled Appointment
+7.Test Bkash Refund API
+8.Create Doctor Model 
+9.Apply Doctor function
+10.Uploaded files, resume
+
+
+D8
+1.Cron Job = schedule -> specific task -> automate
+2. Applied Doctor -> Email Verify -> otp
+3.Within 1 hour => email doesnot verify -> delete unverified users from database
+4.rejested doctors => cron job -> 1 month interval -> delete (not Implementation)
+5.Admin api => Approve doctor, get All doctors
+6.get All doctors => search, filter, pagination, sorting
+7.Doctor Approve/Reject => email send
+8.Error Class -> Custom App Error Class -> Status Code, message
+9.Global Error Handeler => App Error
+10.res.status -> hard coded status code -> custome status code

@@ -1,6 +1,8 @@
 import { UploadApiResponse } from "cloudinary";
+import httpStatus from "http-status";
 import { cloudinary } from "../../lib/cloudinary";
 import { prisma } from "../../lib/prisma";
+import { AppError } from "../../utils/AppError";
 
 const uploadProfileImage = async (buffer: Buffer, userId: string) => {
   const currentUser = await prisma.user.findUnique({
@@ -25,7 +27,7 @@ const uploadProfileImage = async (buffer: Buffer, userId: string) => {
               return reject(error);
             }
             if (!result) {
-              return reject(new Error("No result from Cloudinary upload"));
+              return reject(new AppError(httpStatus.INTERNAL_SERVER_ERROR, "No result from Cloudinary upload"));
             }
             resolve(result);
           },

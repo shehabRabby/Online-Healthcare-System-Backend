@@ -5,7 +5,7 @@ model Doctor {
   email   String  @unique
   address String?
 
-  Specialization  String
+  specialization  String
   licenseNumber   String @unique
   qualifications   String
   experienceYears Int
