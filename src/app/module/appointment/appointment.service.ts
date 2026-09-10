@@ -16,15 +16,17 @@ import { RequestUser } from "../../middleware/checkAuth";
 import { error } from "node:console";
 import { exitCode } from "node:process";
 import crypto from "crypto";
-import { IBookAppointmentPayload } from "./appointment.interface";
-import { addMinutes, isBefore, isSameDay } from "date-fns";
+import {
+  IBookAppointmentPayload,
+  ICancelAppointmentPayload,
+  IPayAppointmentPayload,
+  IUpdateAppointmentStatusPayload,
+} from "./appointment.interface";
+import { addMinutes, isBefore, isSameDay, subHours } from "date-fns";
 import { schedule } from "node-cron";
 import { transporter } from "../../lib/nodemailer";
 
-const bookAppointment = async (
-  payload: IBookAppointmentPayload,
-  user: RequestUser,
-) => {
+const bookAppointment = async ( payload: IBookAppointmentPayload, user: RequestUser) => {
   const transactionResult = await prisma.$transaction(async (tx) => {
     //appointment creation
 
@@ -179,7 +181,7 @@ const bookAppointment = async (
   return transactionResult;
 };
 
-const payAppointment = async (payload: any, user: RequestUser) => {
+const payAppointment = async (payload: IPayAppointmentPayload, user: RequestUser) => {
   const appointmentId = payload.appointmentId;
 
   const existingAppointment = await prisma.appointment.findUnique({
@@ -378,8 +380,9 @@ const bookAppointmentCallback = async (query: Record<string, any>) => {
           },
         });
 
-        const pdfDocument = new PDFDocument({ margin: 50 });
+        //PDF start
 
+        const pdfDocument = new PDFDocument({ margin: 50 });
         const pdfChunks: Buffer[] = [];
 
         pdfDocument.on("data", (chunk: Buffer) => {
@@ -392,40 +395,262 @@ const bookAppointmentCallback = async (query: Record<string, any>) => {
           });
         });
 
+        //COLORS
+        const primaryColor = "#167D9A";
+        const secondaryColor = "#E8F6F8";
+        const darkColor = "#263238";
+        const mutedColor = "#607D8B";
+        const borderColor = "#DDE7EA";
+        const successColor = "#2E8B57";
+
+        //HEADER
+
+        // Top colored bar
+        pdfDocument.rect(0, 0, pdfDocument.page.width, 12).fill(primaryColor);
+
+        // Healthcare System Name
         pdfDocument
-          .fontSize(20)
-          .text("Online Healthcare System", { align: "center" });
+          .fillColor(primaryColor)
+          .fontSize(22)
+          .font("Helvetica-Bold")
+          .text("Online Healthcare System", {
+            align: "center",
+          });
+
+        pdfDocument.moveDown(0.3);
+
+        // Invoice title
         pdfDocument
-          .fontSize(14)
-          .text("Appointment Invoice", { align: "center" });
-        pdfDocument.moveDown(2);
+          .fillColor(darkColor)
+          .fontSize(15)
+          .font("Helvetica-Bold")
+          .text("APPOINTMENT INVOICE", {
+            align: "center",
+            characterSpacing: 0.5,
+          });
+
+        pdfDocument.moveDown(1.5);
+
+        // INVOICE INFO BAR
+
+        const infoY = pdfDocument.y;
+
+        pdfDocument.roundedRect(50, infoY, 495, 45, 6).fill(secondaryColor);
 
         pdfDocument
-          .fontSize(12)
-          .text(`Patient Name: ${appointment.patient?.name}`);
-        pdfDocument.text(`Patient Email: ${appointment.patient?.email}`);
-        pdfDocument.moveDown();
+          .fillColor(primaryColor)
+          .font("Helvetica-Bold")
+          .fontSize(10)
+          .text("PAYMENT RECEIPT", 65, infoY + 10);
 
-        pdfDocument.text(`Doctor Name: ${appointment.doctor?.name}`);
-        pdfDocument.text(
-          `Specialization: ${appointment.doctor?.specialization}`,
-        );
-        pdfDocument.moveDown();
+        pdfDocument
+          .fillColor(successColor)
+          .font("Helvetica-Bold")
+          .fontSize(10)
+          .text("✓ PAID", 450, infoY + 10, {
+            align: "right",
+            width: 80,
+          });
 
-        pdfDocument.text(
-          `Appointment Date: ${appointment.schedule.startDateTime.toDateString()}`,
-        );
-        pdfDocument.text(`Your Joining Time: ${joiningTime.toString()}`);
-        pdfDocument.text(`Your Serial Number: ${serialNumber}`);
-        pdfDocument.text(`Meeting Link: ${appointment.schedule.meetingLink}`);
-        pdfDocument.moveDown();
+        pdfDocument.moveDown(3);
 
-        pdfDocument.text(`Amount Paid: ${executedPaymentResult.amount} BDT`);
-        pdfDocument.text(`Payment Method: bKash`);
-        pdfDocument.text(`Transaction Id: ${executedPaymentResult.trxID}`);
-        pdfDocument.text(
-          `Paid At: ${executedPaymentResult.paymentExecuteTime}`,
-        );
+        // PATIENT & DOCTOR SECTION
+
+        pdfDocument
+          .fillColor(primaryColor)
+          .font("Helvetica-Bold")
+          .fontSize(11)
+          .text("PATIENT INFORMATION");
+
+        pdfDocument.moveDown(0.5);
+
+        pdfDocument
+          .fillColor(darkColor)
+          .font("Helvetica-Bold")
+          .fontSize(11)
+          .text(`${appointment.patient?.name}`);
+
+        pdfDocument
+          .fillColor(mutedColor)
+          .font("Helvetica")
+          .fontSize(9.5)
+          .text(`${appointment.patient?.email}`);
+
+        pdfDocument.moveDown(1);
+
+        pdfDocument
+          .fillColor(primaryColor)
+          .font("Helvetica-Bold")
+          .fontSize(11)
+          .text("DOCTOR INFORMATION");
+
+        pdfDocument.moveDown(0.5);
+
+        pdfDocument
+          .fillColor(darkColor)
+          .font("Helvetica-Bold")
+          .fontSize(11)
+          .text(`${appointment.doctor?.name}`);
+
+        pdfDocument
+          .fillColor(mutedColor)
+          .font("Helvetica")
+          .fontSize(9.5)
+          .text(`Specialization: ${appointment.doctor?.specialization}`);
+
+        pdfDocument.moveDown(1.5);
+
+        // APPOINTMENT DETAILS
+
+        pdfDocument
+          .fillColor(primaryColor)
+          .font("Helvetica-Bold")
+          .fontSize(11)
+          .text("APPOINTMENT DETAILS");
+
+        pdfDocument.moveDown(0.6);
+
+        const appointmentStartY = pdfDocument.y;
+
+        const appointmentRows = [
+          [
+            "Appointment Date",
+            appointment.schedule.startDateTime.toDateString(),
+          ],
+          ["Joining Time", joiningTime.toString()],
+          ["Serial Number", `${serialNumber}`],
+          ["Meeting Link", appointment.schedule.meetingLink],
+        ];
+
+        appointmentRows.forEach(([label, value], index) => {
+          const rowY = appointmentStartY + index * 32;
+
+          // alternating subtle background
+          if (index % 2 === 0) {
+            pdfDocument.rect(50, rowY - 4, 495, 28).fill("#F8FBFC");
+          }
+
+          pdfDocument
+            .fillColor(mutedColor)
+            .font("Helvetica")
+            .fontSize(9.5)
+            .text(label, 65, rowY + 4, {
+              width: 135,
+            });
+
+          pdfDocument
+            .fillColor(darkColor)
+            .font("Helvetica-Bold")
+            .fontSize(9.5)
+            .text(value, 205, rowY + 4, {
+              width: 325,
+            });
+        });
+
+        pdfDocument.y = appointmentStartY + appointmentRows.length * 32 + 15;
+
+        //PAYMENT DETAILS
+
+        pdfDocument
+          .fillColor(primaryColor)
+          .font("Helvetica-Bold")
+          .fontSize(11)
+          .text("PAYMENT DETAILS");
+
+        pdfDocument.moveDown(0.6);
+
+        const paymentStartY = pdfDocument.y;
+
+        const paymentRows = [
+          ["Payment Method", "bKash"],
+          ["Transaction ID", executedPaymentResult.trxID],
+          ["Paid At", executedPaymentResult.paymentExecuteTime],
+        ];
+
+        paymentRows.forEach(([label, value], index) => {
+          const rowY = paymentStartY + index * 32;
+
+          if (index % 2 === 0) {
+            pdfDocument.rect(50, rowY - 4, 495, 28).fill("#F8FBFC");
+          }
+
+          pdfDocument
+            .fillColor(mutedColor)
+            .font("Helvetica")
+            .fontSize(9.5)
+            .text(label, 65, rowY + 4, {
+              width: 135,
+            });
+
+          pdfDocument
+            .fillColor(darkColor)
+            .font("Helvetica-Bold")
+            .fontSize(9.5)
+            .text(value, 205, rowY + 4, {
+              width: 325,
+            });
+        });
+
+        pdfDocument.y = paymentStartY + paymentRows.length * 32 + 20;
+
+        // TOTAL AMOUNT
+        const totalY = pdfDocument.y;
+
+        pdfDocument.roundedRect(50, totalY, 495, 58, 7).fill(primaryColor);
+
+        pdfDocument
+          .fillColor("#FFFFFF")
+          .font("Helvetica-Bold")
+          .fontSize(11)
+          .text("TOTAL AMOUNT PAID", 70, totalY + 15);
+
+        pdfDocument
+          .fillColor("#FFFFFF")
+          .font("Helvetica-Bold")
+          .fontSize(17)
+          .text(`${executedPaymentResult.amount} BDT`, 350, totalY + 12, {
+            width: 175,
+            align: "right",
+          });
+
+        pdfDocument.moveDown(4);
+
+        //FOOTER
+        pdfDocument
+          .moveTo(50, pdfDocument.y)
+          .lineTo(545, pdfDocument.y)
+          .strokeColor(borderColor)
+          .lineWidth(1)
+          .stroke();
+
+        pdfDocument.moveDown(0.8);
+
+        pdfDocument
+          .fillColor(primaryColor)
+          .font("Helvetica-Bold")
+          .fontSize(10)
+          .text("Thank you for choosing Online Healthcare System.", {
+            align: "center",
+          });
+
+        pdfDocument.moveDown(0.3);
+
+        pdfDocument
+          .fillColor(mutedColor)
+          .font("Helvetica")
+          .fontSize(8.5)
+          .text("This invoice confirms your appointment and payment.", {
+            align: "center",
+          });
+
+        pdfDocument.moveDown(0.5);
+
+        pdfDocument
+          .fillColor("#90A4AE")
+          .fontSize(8)
+          .text("Online Healthcare System • Digital Appointment Invoice", {
+            align: "center",
+          });
 
         pdfDocument.end();
 
@@ -443,6 +668,8 @@ const bookAppointmentCallback = async (query: Record<string, any>) => {
             },
           ],
         });
+
+        //END pdf
 
         return {
           redirectUrl: `${config.frontend_url}/dashboard/my-appointments?status=success`,
@@ -490,24 +717,25 @@ const bookAppointmentCallback = async (query: Record<string, any>) => {
   return transactionResult;
 };
 
-
-
-
-const cancleAppointment = async (payload: any) => {
+const cancelAppointment = async ( payload: ICancelAppointmentPayload, user: RequestUser) => {
   const transactionResult = await prisma.$transaction(async (tx) => {
     const appointmentId = payload.appointmentId;
 
     const existingAppointment = await tx.appointment.findUnique({
       where: {
         id: appointmentId,
+        patient: {
+          email: user.email,
+        },
       },
       include: {
         payment: true,
+        schedule: true,
       },
     });
 
     if (!existingAppointment) {
-      throw new AppError(httpStatus.NOT_FOUND, "Appointment not found");
+      throw new AppError(httpStatus.NOT_FOUND, "Appointment Does Not Exists");
     }
 
     if (
@@ -521,7 +749,10 @@ const cancleAppointment = async (payload: any) => {
     }
 
     if (existingAppointment.status === "CANCELLED") {
-      throw new AppError(httpStatus.CONFLICT, "Appointment Already Cancelled");
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Appointment Already Cancelled",
+      );
     }
 
     const updatedAppointment = await tx.appointment.update({
@@ -529,67 +760,168 @@ const cancleAppointment = async (payload: any) => {
         id: existingAppointment.id,
       },
       data: {
-        status: "CANCELLED",
+        status: AppointmentStatus.CANCELLED,
       },
     });
 
-    const bkashIdToken = await getBkashIdToken();
-
-    if (!bkashIdToken) {
-      throw new AppError(
-        httpStatus.INTERNAL_SERVER_ERROR,
-        "Failed to get bKash ID token",
-      );
-    }
-
-    const bkashRefundPaymentResponse = await fetch(
-      `${config.bkash_base_url}/tokenized/checkout/payment/refund`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: bkashIdToken,
-          "X-APP-Key": config.bkash_app_key,
-        },
-        body: JSON.stringify({
-          paymentID: existingAppointment.payment?.bkashPaymentId,
-          trxID: existingAppointment.payment?.bkashTrxId,
-          amount: existingAppointment.payment?.amount.toString(),
-          sku: "Appointment Cancellation",
-          reason: "Patient Cancelled the Appointment",
-        }),
-      },
-    );
-
-    const bkashRefundPaymentResult = await bkashRefundPaymentResponse.json();
-    console.log({ bkashRefundPaymentResult });
-
-    const updatedPayment = await tx.payment.update({
+    await prisma.schedule.update({
       where: {
-        appointmentId: existingAppointment.id,
+        id: existingAppointment.schedule.id,
       },
       data: {
-        refundTrxId: bkashRefundPaymentResult.refundTrxID,
-        refundAt: bkashRefundPaymentResult.completedTime,
-        refundAmount: bkashRefundPaymentResult.amount,
-        refundReason: "Patient Cancelled the Appointment",
-        status: PaymentStatus.REUNDED,
-        gatewayResponse: bkashRefundPaymentResult,
+        availableSlots: { increment: 1 },
+      },
+    });
+
+    // refund process start here
+    const now = new Date();
+    const startDateTime = existingAppointment.schedule.startDateTime; // 25 August : 3:00 PM
+
+    // After 2:00 Pm => no refund
+    // must cancel before  2:00 PM
+    const refundCutOffTime = subHours(startDateTime, 1);
+
+    // now >  refundCutOff Time => no refund
+    // now < refundCutOff Time => refund eligible
+    const isEligibleForRefund = isBefore(now, refundCutOffTime);
+
+    if (isEligibleForRefund) {
+      const bkashIdToken = await getBkashIdToken();
+
+      if (!bkashIdToken) {
+        throw new AppError(
+          httpStatus.BAD_GATEWAY,
+          "No Bkash Access Token Found!",
+        );
+      }
+
+      const bkashRefundPaymentResponse = await fetch(
+        `${config.bkash_base_url}/tokenized/checkout/payment/refund`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: bkashIdToken,
+            "X-App-Key": config.bkash_app_key,
+          },
+          body: JSON.stringify({
+            paymentID: existingAppointment.payment?.bkashPaymentId,
+            trxID: existingAppointment.payment?.bkashTrxId,
+            amount: existingAppointment.payment?.amount.toString(),
+            sku: "Appointment Cancellation",
+            reason: "Patient Cancelled The Appointment",
+          }),
+        },
+      );
+
+      const bkashRefundPaymentResult = await bkashRefundPaymentResponse.json();
+
+      await tx.payment.update({
+        where: {
+          appointmentId: existingAppointment.id,
+        },
+        data: {
+          refundTrxId: bkashRefundPaymentResult.refundTrxID,
+          refundedAt: bkashRefundPaymentResult.completedTime,
+          refundAmount: bkashRefundPaymentResult.amount,
+          refundReason: "Patient Cancelled The Appointment",
+          status: PaymentStatus.REFUNDED,
+          gatewayResponse: bkashRefundPaymentResult,
+        },
+      });
+    }
+
+    const newPaymentInfo = await prisma.payment.findUnique({
+      where: {
+        appointmentId: existingAppointment.id,
       },
     });
 
     return {
       appointment: updatedAppointment,
-      payment: updatedPayment,
+      payment: newPaymentInfo,
     };
   });
+
   return transactionResult;
 };
+
+
+//just for doctor role confirm -> ongoing -> completed
+const updateAppointmentStatus = async ( appointmentId : string, payload : IUpdateAppointmentStatusPayload, user : RequestUser) => {
+	const doctor = await prisma.doctor.findUnique({
+		where: { userId: user.userId },
+	});
+
+	if (!doctor) {
+		throw new AppError(httpStatus.NOT_FOUND, "Doctor Profile Not Found");
+	}
+
+	const appointment = await prisma.appointment.findUnique({
+		where: { id: appointmentId, doctorId : doctor.id },
+	});
+
+	if (!appointment) {
+		throw new AppError(httpStatus.NOT_FOUND, "Appointment Not Found");
+	}
+
+	if(appointment.status === AppointmentStatus.COMPLETED){
+		throw new AppError(httpStatus.FORBIDDEN, "Appointment is already completed")
+	}
+
+	if(appointment.status === AppointmentStatus.CANCELLED){
+		throw new AppError(httpStatus.FORBIDDEN, "Appointment is already cancelled")
+	}
+	if(appointment.status === AppointmentStatus.PENDING){
+		throw new AppError(httpStatus.FORBIDDEN, "Appointment is Pending. You can change the status after appointment is confirmed")
+	}
+
+	if(appointment.status === AppointmentStatus.CONFIRMED){
+
+		if(payload.status !== "ONGOING"){
+			throw new AppError(httpStatus.BAD_REQUEST, "Confirmed Appointment Must Be Ongoing At First")
+		}
+
+		await prisma.appointment.update({
+			where : {
+				id : appointment.id
+			},
+			data : {
+				status : AppointmentStatus.ONGOING
+			}
+		})
+	}
+
+	if(appointment.status === AppointmentStatus.ONGOING){
+
+		if(payload.status !== "COMPLETED"){
+			throw new AppError(httpStatus.BAD_REQUEST, "Ongoinf Appointment Must Be Complted.")
+		}
+
+		await prisma.appointment.update({
+			where: {
+				id: appointment.id
+			},
+			data: {
+				status: AppointmentStatus.COMPLETED
+			}
+		})
+	}
+
+	const updatedAppointment = await prisma.appointment.findUnique({
+		where : {
+			id : appointment.id
+		}
+	})
+
+	return updatedAppointment
+}
 
 export const AppointmentService = {
   bookAppointment,
   bookAppointmentCallback,
   payAppointment,
-  cancleAppointment,
+  cancelAppointment,
+  updateAppointmentStatus
 };
