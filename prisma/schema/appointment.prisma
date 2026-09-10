@@ -3,7 +3,7 @@ model Appointment {
 
   status AppointmentStatus @default(PENDING)
   joiningTime DateTime?
-  serialNumber Int
+  serialNumber Int?
 
   recordUrl      String?
   recordPublicId String?
