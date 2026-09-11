@@ -1,23 +1,21 @@
-import { NextFunction, Request, Response, Router } from "express";
+import { Router } from "express";
 import { Role } from "../../../generated/prisma/enums";
+import { upload } from "../../lib/multer";
 import { auth } from "../../middleware/checkAuth";
-import { catchAsync } from "../../utils/catchAsync";
-import z from "zod";
 import { validateRequest } from "../../middleware/validateRequest";
 import { DoctorController } from "./doctor.controller";
-import { upload } from "../../lib/multer";
+import { UpdateDoctorProfileValidationZodSchema } from "./doctor.validation";
 
 const router = Router();
 
 router.post(
   "/apply-as-doctor",
-  //   validateRequest(UserValidation.patientRegistrationZodSchema),
-
   upload.fields([
     {
       name: "resume",
       maxCount: 1,
     },
+
     {
       name: "additionalFiles",
       maxCount: 10,
@@ -31,13 +29,31 @@ router.post(
   DoctorController.verifyDoctorEmail,
 );
 router.post(
-  "/approved-doctor", auth(Role.ADMIN, Role.SUPER_ADMIN),
+  "/approve-doctor",
+  auth(Role.ADMIN, Role.SUPER_ADMIN),
   DoctorController.approveDoctor,
 );
 router.get(
-  "/all-doctors", auth(Role.ADMIN, Role.SUPER_ADMIN),
+  "/all-doctors",
+  auth(Role.ADMIN, Role.SUPER_ADMIN),
   DoctorController.getAllDoctors,
 );
 
+router.patch(
+  "/update-my-profile",
+  auth(Role.DOCTOR),
+  validateRequest(UpdateDoctorProfileValidationZodSchema),
+  DoctorController.updateDoctorProfile,
+);
+
+// Public doctor-discovery routes (no auth) — meant for patients browsing before login.
+router.get(
+  "/public/available-today",
+  DoctorController.getAvailableDoctorByTodaysSchedule,
+);
+
+router.get("/public/all-doctors", DoctorController.getAllDoctorsListPublic);
+
+router.get("/public/:doctorId", DoctorController.getSingleDoctorPublicProfile);
+
 export const DoctorRoutes = router;
- 
