@@ -79,7 +79,7 @@ const createPrescription = async (
     .fillColor(primaryColor)
     .font("Helvetica-Bold")
     .fontSize(22)
-    .text("PH Healthcare System", {
+    .text("Online Healthcare System", {
       align: "center",
     });
 
@@ -297,7 +297,7 @@ const createPrescription = async (
     .fillColor(primaryColor)
     .font("Helvetica-Bold")
     .fontSize(10)
-    .text("PH Healthcare System", {
+    .text("Online Healthcare System", {
       align: "center",
     });
 
@@ -366,7 +366,7 @@ const createPrescription = async (
   await transporter.sendMail({
     from: config.email_sender,
     to: appointment.patient.email,
-    subject: "Your Prescription - PH Healthcare System",
+    subject: "Your Prescription - Online Healthcare System",
     text: "Please find your prescription attached.",
     attachments: [
       {

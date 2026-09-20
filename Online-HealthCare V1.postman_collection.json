@@ -1,0 +1,1515 @@
+{
+  "info": {
+    "_postman_id": "fdf606be-3197-4c0e-94fc-dd6b77494c4d",
+    "name": "Online-HealthCare V1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "54681407",
+    "_collection_link": "https://go.postman.co/collection/54681407-fdf606be-3197-4c0e-94fc-dd6b77494c4d?source=collection_link"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api/v1"
+    },
+    {
+      "key": "patientToken",
+      "value": ""
+    },
+    {
+      "key": "doctorToken",
+      "value": ""
+    },
+    {
+      "key": "adminToken",
+      "value": ""
+    },
+    {
+      "key": "scheduleId",
+      "value": ""
+    },
+    {
+      "key": "appointmentId",
+      "value": ""
+    },
+    {
+      "key": "doctorId",
+      "value": ""
+    },
+    {
+      "key": "paymentId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Patient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rahim Uddin\",\n  \"email\": \"rahim.uddin@gmail.com\",\n  \"password\": \"StrongPass@123\",\n  \"patient\": {\n    \"contactNumber\": \"+8801711000000\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Registers a new patient. Password must be minimum 8 characters with at least one uppercase, lowercase, digit and special character. An OTP is sent to the email which is needed to verify the email."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"rahim.uddin@gmail.com\",\n  \"otp\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "verify-email"
+              ]
+            },
+            "description": "Verifies the patient email with the OTP received from Register Patient. Returns accessToken & refreshToken (also set as httpOnly cookies). Copy accessToken into the {{patientToken}} variable."
+          },
+          "response": []
+        },
+        {
+          "name": "Credential Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"rahim.uddin@gmail.com\",\n  \"password\": \"StrongPass@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Logs in a user with email & password. Returns accessToken & refreshToken (also set as httpOnly cookies). Copy accessToken into the appropriate role variable ({{patientToken}} / {{doctorToken}} / {{adminToken}})."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Returns the currently logged-in user profile with patient info. Works for SUPER_ADMIN, ADMIN, DOCTOR and PATIENT roles."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "refreshToken={{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh-token"
+              ]
+            },
+            "description": "Generates a new accessToken & refreshToken. Requires the refreshToken httpOnly cookie which is set after login/verify-email. Add a {{refreshToken}} cookie variable if testing manually."
+          },
+          "response": []
+        },
+        {
+          "name": "Google Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"<GOOGLE_ID_TOKEN>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/google",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "google"
+              ]
+            },
+            "description": "Logs in or registers a patient using a Google ID token (obtained from the Google OAuth client)."
+          },
+          "response": []
+        },
+        {
+          "name": "Forget Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"rahim.uddin@gmail.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "description": "Sends a password reset OTP to the given email."
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"rahim.uddin@gmail.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewStrong@456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
+            },
+            "description": "Resets the password using the OTP sent via Forget Password. newPassword follows the same strength rules as registration."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Upload Profile Image",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "profileImage",
+                  "type": "file",
+                  "src": [],
+                  "description": "Image file to upload (jpg/png/webp)."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/profile-image",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "profile-image"
+              ]
+            },
+            "description": "Uploads the logged-in user's profile image. Multipart form-data with a file field named 'profileImage'. Works for all roles (use the matching role token)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Appointment",
+      "item": [
+        {
+          "name": "Book-Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scheduleId\": \"{{scheduleId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/appointment/book-appointment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "appointment",
+                "book-appointment"
+              ]
+            },
+            "description": "Patient books an appointment against a PUBLISHED schedule that is available today. Creates a PENDING appointment and returns a bKash paymentUrl. Use a scheduleId from /schedule/todays-schedule or a doctor's available-today schedule."
+          },
+          "response": []
+        },
+        {
+          "name": "Pay Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentId\": \"{{appointmentId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/appointment/pay-appointment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "appointment",
+                "pay-appointment"
+              ]
+            },
+            "description": "Patient re-initiates payment for a PENDING appointment. Returns a fresh bKash paymentUrl."
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentId\": \"{{appointmentId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/appointment/cancel-appointment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "appointment",
+                "cancel-appointment"
+              ]
+            },
+            "description": "Cancels an appointment (owner patient / admin / super admin). If cancelled at least 1 hour before start time, the payment is automatically refunded via bKash."
+          },
+          "response": []
+        },
+        {
+          "name": "Book Appointment Payment Callback",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/appointment/book-appointment/payment/callback?paymentID={{paymentID}}&status=success",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "appointment",
+                "book-appointment",
+                "payment",
+                "callback"
+              ],
+              "query": [
+                {
+                  "key": "paymentID",
+                  "value": "{{paymentID}}",
+                  "description": "bKash payment ID received by callback."
+                },
+                {
+                  "key": "status",
+                  "value": "success",
+                  "description": "success | failure | cancel"
+                }
+              ]
+            },
+            "description": "bKash callback URL. Called automatically by bKash after payment. Confirms the appointment, decrements schedule slots, marks payment PAID and emails the patient an invoice PDF. Redirects back to the frontend."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Appointment Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ONGOING\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/appointment/update-status/{{appointmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "appointment",
+                "update-status",
+                "{{appointmentId}}"
+              ]
+            },
+            "description": "Doctor updates appointment status. A CONFIRMED appointment must go ONGOING first, then COMPLETED."
+          },
+          "response": []
+        },
+        {
+          "name": "My Appointments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/appointment/my-appointments?page=1&limit=10&status=CONFIRMED",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "appointment",
+                "my-appointments"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "CONFIRMED",
+                  "description": "Optional: PENDING | CONFIRMED | CANCELLED | ONGOING | COMPLETED"
+                }
+              ]
+            },
+            "description": "Lists the logged-in patient's appointments (paginated, filterable by status)."
+          },
+          "response": []
+        },
+        {
+          "name": "Doctor Appointments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/appointment/doctor-appointments?page=1&limit=10&status=CONFIRMED",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "appointment",
+                "doctor-appointments"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "CONFIRMED",
+                  "description": "Optional: PENDING | CONFIRMED | CANCELLED | ONGOING | COMPLETED"
+                }
+              ]
+            },
+            "description": "Lists appointments of the logged-in doctor (paginated, filterable by status)."
+          },
+          "response": []
+        },
+        {
+          "name": "All Appointments (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/appointment/all-appointments?page=1&limit=10&status=CONFIRMED&doctorEmail=&patientEmail=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "appointment",
+                "all-appointments"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "CONFIRMED",
+                  "description": "Optional appointment status filter"
+                },
+                {
+                  "key": "doctorId",
+                  "value": "",
+                  "description": "Optional filter by doctor id"
+                },
+                {
+                  "key": "patientId",
+                  "value": "",
+                  "description": "Optional filter by patient id"
+                },
+                {
+                  "key": "doctorEmail",
+                  "value": "",
+                  "description": "Optional filter by doctor email"
+                },
+                {
+                  "key": "patientEmail",
+                  "value": "",
+                  "description": "Optional filter by patient email"
+                }
+              ]
+            },
+            "description": "Admin / Super Admin lists all appointments with optional filters (status, doctorId, patientId, doctorEmail, patientEmail)."
+          },
+          "response": []
+        },
+        {
+          "name": "Single Appointment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/appointment/{{appointmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "appointment",
+                "{{appointmentId}}"
+              ]
+            },
+            "description": "Fetches a single appointment. Patients & doctors can only view their own appointments; admins can view any."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Doctor",
+      "item": [
+        {
+          "name": "apply-doctor",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "resume",
+                  "type": "file",
+                  "src": [],
+                  "description": "Resume file (pdf/image). Required."
+                },
+                {
+                  "key": "additionalFiles",
+                  "type": "file",
+                  "src": [],
+                  "description": "Additional supporting files (max 10). Optional, multiple can be added."
+                },
+                {
+                  "key": "data",
+                  "type": "text",
+                  "value": "{\"user\":{\"name\":\"Dr. Jane Smith\",\"email\":\"jane.smith@gmail.com\"},\"doctor\":{\"address\":\"House 12, Road 5, Dhanmondi, Dhaka\",\"specialization\":\"Cardiology\",\"licenseNumber\":\"BMDC-12345\",\"qualifications\":\"MBBS, FCPS (Cardiology)\",\"experienceYears\":8,\"bio\":\"Senior cardiologist with 8 years of experience.\",\"consultationFee\":800,\"contactNumber\":\"+8801711000001\"}}",
+                  "description": "JSON string of the { user, doctor } payload."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/doctors/apply-as-doctor",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "doctors",
+                "apply-as-doctor"
+              ]
+            },
+            "description": "Public - anyone can apply to become a doctor. Multipart form-data: 'resume' (file), 'additionalFiles' (files, optional) and 'data' (text) containing the JSON payload. An OTP is emailed for verification."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Doctor Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane.smith@gmail.com\",\n  \"otp\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/doctors/apply-as-doctor/verify-email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "doctors",
+                "apply-as-doctor",
+                "verify-email"
+              ]
+            },
+            "description": "Verifies the doctor application email with the OTP received after applying. Works before admin approval."
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Doctor (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorId\": \"{{doctorId}}\",\n  \"verificationStatus\": \"APPROVED\",\n  \"rejectionReason\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/doctors/approve-doctor",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "doctors",
+                "approve-doctor"
+              ]
+            },
+            "description": "Admin / Super Admin approves or rejects a doctor application. verificationStatus: APPROVED or REJECTED. rejectionReason is required when REJECTED."
+          },
+          "response": []
+        },
+        {
+          "name": "All Doctors (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/doctors/all-doctors?page=1&limit=10&searchTerm=cardio&specialization=&email=&licenseNumber=&verificationStatus=PENDING",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "doctors",
+                "all-doctors"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "searchTerm",
+                  "value": "cardio",
+                  "description": "Search by name, email, specialization or license number (optional)"
+                },
+                {
+                  "key": "specialization",
+                  "value": "",
+                  "description": "Filter by specialization"
+                },
+                {
+                  "key": "email",
+                  "value": "",
+                  "description": "Filter by email"
+                },
+                {
+                  "key": "licenseNumber",
+                  "value": "",
+                  "description": "Filter by license number"
+                },
+                {
+                  "key": "verificationStatus",
+                  "value": "PENDING",
+                  "description": "PENDING | APPROVED | REJECTED"
+                }
+              ]
+            },
+            "description": "Admin / Super Admin lists all doctor applications with search & filters."
+          },
+          "response": []
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"House 20, Road 7, Banani, Dhaka\",\n  \"bio\": \"Cardiologist with special interest in preventive cardiology.\",\n  \"consultationFee\": 1000,\n  \"contactNumber\": \"+8801711000002\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/doctors/update-my-profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "doctors",
+                "update-my-profile"
+              ]
+            },
+            "description": "Logged-in doctor updates own profile fields (all optional)."
+          },
+          "response": []
+        },
+        {
+          "name": "Available Today (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doctors/public/available-today?page=1&limit=10&specialization=Cardiology",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "doctors",
+                "public",
+                "available-today"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "searchTerm",
+                  "value": "",
+                  "description": "Search by doctor name or specialization"
+                },
+                {
+                  "key": "specialization",
+                  "value": "Cardiology",
+                  "description": "Filter by specialization"
+                }
+              ]
+            },
+            "description": "Public - lists approved doctors who have published schedules today with available slots."
+          },
+          "response": []
+        },
+        {
+          "name": "All Doctors (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doctors/public/all-doctors?page=1&limit=10&searchTerm=&specialization=Cardiology",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "doctors",
+                "public",
+                "all-doctors"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "searchTerm",
+                  "value": "",
+                  "description": "Search by name, specialization or qualifications"
+                },
+                {
+                  "key": "specialization",
+                  "value": "Cardiology",
+                  "description": "Filter by specialization"
+                }
+              ]
+            },
+            "description": "Public - lists all approved doctors for patient browsing before login."
+          },
+          "response": []
+        },
+        {
+          "name": "Single Doctor (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doctors/public/{{doctorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "doctors",
+                "public",
+                "{{doctorId}}"
+              ]
+            },
+            "description": "Public - fetches the profile of a single approved doctor."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Schedule",
+      "item": [
+        {
+          "name": "Create Schedule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDateTime\": \"2026-09-14T09:00:00.000Z\",\n  \"endDateTime\": \"2026-09-14T10:00:00.000Z\",\n  \"meetingLink\": \"https://meet.google.com/abc-defg-hij\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/schedule/create-schedule",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedule",
+                "create-schedule"
+              ]
+            },
+            "description": "Doctor creates a schedule for a single day. Start & end must be on the same day. Slots are auto-calculated (20 minutes per slot)."
+          },
+          "response": []
+        },
+        {
+          "name": "My Schedules",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/schedule/my-schedules?page=1&limit=10&status=PUBLISHED",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedule",
+                "my-schedules"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "PUBLISHED",
+                  "description": "Optional: DRAFT | PUBLISHED"
+                }
+              ]
+            },
+            "description": "Lists the logged-in doctor's schedules with their appointments."
+          },
+          "response": []
+        },
+        {
+          "name": "All Schedules (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/schedule/all-schedules?page=1&limit=10&doctorId=&email=&status=PUBLISHED&searchTerm=Dr.",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedule",
+                "all-schedules"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "doctorId",
+                  "value": "",
+                  "description": "Filter by doctor id"
+                },
+                {
+                  "key": "email",
+                  "value": "",
+                  "description": "Filter by doctor email"
+                },
+                {
+                  "key": "status",
+                  "value": "PUBLISHED",
+                  "description": "Optional: DRAFT | PUBLISHED"
+                },
+                {
+                  "key": "searchTerm",
+                  "value": "Dr.",
+                  "description": "Search by doctor name / email / specialization"
+                }
+              ]
+            },
+            "description": "Admin / Super Admin lists all schedules with filters."
+          },
+          "response": []
+        },
+        {
+          "name": "Today's Schedules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/schedule/todays-schedule?doctorId={{doctorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedule",
+                "todays-schedule"
+              ],
+              "query": [
+                {
+                  "key": "doctorId",
+                  "value": "{{doctorId}}",
+                  "description": "Required - doctor id"
+                }
+              ]
+            },
+            "description": "Public - lists a doctor's published schedules for today that still have available slots. doctorId is required."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Schedule",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDateTime\": \"2026-09-14T10:00:00.000Z\",\n  \"endDateTime\": \"2026-09-14T11:00:00.000Z\",\n  \"meetingLink\": \"https://meet.google.com/xyz-wxyz-abc\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/schedule/update-schedule/{{scheduleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedule",
+                "update-schedule",
+                "{{scheduleId}}"
+              ]
+            },
+            "description": "Doctor updates one of their own schedules. Cannot be updated once published and appointments have been booked."
+          },
+          "response": []
+        },
+        {
+          "name": "Publish Schedule",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/schedule/publish-schedule/{{scheduleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedule",
+                "publish-schedule",
+                "{{scheduleId}}"
+              ]
+            },
+            "description": "Doctor publishes a DRAFT schedule, making it visible to patients."
+          },
+          "response": []
+        },
+        {
+          "name": "Single Schedule",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/schedule/{{scheduleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedule",
+                "{{scheduleId}}"
+              ]
+            },
+            "description": "Fetches a single schedule with doctor & appointments. Accessible by DOCTOR, ADMIN and SUPER_ADMIN."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Schedule",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/schedule/{{scheduleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedule",
+                "{{scheduleId}}"
+              ]
+            },
+            "description": "Doctor soft-deletes one of their own schedules. Cannot be deleted once published and appointments have been booked."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payment",
+      "item": [
+        {
+          "name": "My Payments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment/my-payments?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment",
+                "my-payments"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Lists the logged-in patient's payments."
+          },
+          "response": []
+        },
+        {
+          "name": "All Payments (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment/all-payments?page=1&limit=10&patientEmail=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment",
+                "all-payments"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "patientEmail",
+                  "value": "",
+                  "description": "Optional filter by patient email"
+                }
+              ]
+            },
+            "description": "Admin / Super Admin lists all payments."
+          },
+          "response": []
+        },
+        {
+          "name": "Single Payment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment/{{paymentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment",
+                "{{paymentId}}"
+              ]
+            },
+            "description": "Fetches a single payment. Patients can only view their own; admins can view any."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Prescription",
+      "item": [
+        {
+          "name": "Create Prescription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentId\": \"{{appointmentId}}\",\n  \"findings\": \"Patient has high blood pressure and mild chest pain.\",\n  \"medicines\": [\n    {\n      \"name\": \"Metformin 500mg\",\n      \"dosage\": \"1 tablet\",\n      \"duration\": \"30 days\",\n      \"instructions\": \"After breakfast\"\n    },\n    {\n      \"name\": \"Aspirin 75mg\",\n      \"dosage\": \"1 tablet\",\n      \"duration\": \"15 days\",\n      \"instructions\": \"After dinner\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/prescription/create-prescription",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "prescription",
+                "create-prescription"
+              ]
+            },
+            "description": "Doctor writes a prescription for a COMPLETED appointment. The prescription is emailed to the patient."
+          },
+          "response": []
+        },
+        {
+          "name": "Prescription By Appointment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/prescription/{{appointmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "prescription",
+                "{{appointmentId}}"
+              ]
+            },
+            "description": "Fetches the prescription for a given appointment id. Accessible by PATIENT, DOCTOR, ADMIN and SUPER_ADMIN."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Patient Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/patient-analytics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "patient-analytics"
+              ]
+            },
+            "description": "Dashboard analytics for the logged-in patient."
+          },
+          "response": []
+        },
+        {
+          "name": "Doctor Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/doctor-analytics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "doctor-analytics"
+              ]
+            },
+            "description": "Dashboard analytics for the logged-in doctor."
+          },
+          "response": []
+        },
+        {
+          "name": "Admin Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/admin-analytics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "admin-analytics"
+              ]
+            },
+            "description": "Dashboard analytics for ADMIN / SUPER_ADMIN."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

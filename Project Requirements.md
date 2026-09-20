@@ -1,8 +1,8 @@
-# Project Requirements — PH Healthcare System
+# Project Requirements — Online Healthcare System
 
 ## 1. Overview
 
-PH Healthcare System connects patients with doctors for online consultations. A patient finds a doctor, books an open slot on a published schedule, pays for it, and joins a video call at the scheduled time. The doctor runs the consultation and afterward sends back a digital prescription. Admins and super admins keep the platform running: they approve doctors, manage accounts, and handle the people side of the platform so doctors and patients only have to deal with appointments.
+Online Healthcare System connects patients with doctors for online consultations. A patient finds a doctor, books an open slot on a published schedule, pays for it, and joins a video call at the scheduled time. The doctor runs the consultation and afterward sends back a digital prescription. Admins and super admins keep the platform running: they approve doctors, manage accounts, and handle the people side of the platform so doctors and patients only have to deal with appointments.
 
 This document is the product spec — what the system must do and the exact rules it must follow. It is not the database schema and not the API design; those come next, and every rule below is written so that whoever designs them doesn't have to guess. The [README](./README.md) describes what's actually implemented in the code today, which is currently far behind this document.
 
@@ -10,12 +10,12 @@ This document is the product spec — what the system must do and the exact rule
 
 Four roles exist: **Super Admin**, **Admin**, **Doctor**, **Patient**.
 
-| Role           | How they join the platform                                                   | How they log in                  |
-| -------------- | ------------------------------------------------------------------------------ | ---------------------------------- |
-| **Patient**    | Registers directly — email/password or Google                                  | Email/password or Google           |
-| **Doctor**     | Applies directly, then waits for an Admin or Super Admin to approve them       | Email/password only                |
-| **Admin**      | Created by a Super Admin or an existing Admin — cannot self-register           | Email/password only                |
-| **Super Admin**| Created by another Super Admin — cannot self-register                          | Email/password only                |
+| Role            | How they join the platform                                               | How they log in          |
+| --------------- | ------------------------------------------------------------------------ | ------------------------ |
+| **Patient**     | Registers directly — email/password or Google                            | Email/password or Google |
+| **Doctor**      | Applies directly, then waits for an Admin or Super Admin to approve them | Email/password only      |
+| **Admin**       | Created by a Super Admin or an existing Admin — cannot self-register     | Email/password only      |
+| **Super Admin** | Created by another Super Admin — cannot self-register                    | Email/password only      |
 
 Google login is a **patient-only** feature. Doctors, Admins, and Super Admins always use email and password.
 
@@ -23,15 +23,15 @@ Google login is a **patient-only** feature. Doctors, Admins, and Super Admins al
 
 Admin and Super Admin have the same day-to-day powers — approving doctors, managing patients, creating new admins — with two exceptions reserved for Super Admin:
 
-| Action                              | Admin | Super Admin |
-| ------------------------------------ | :---: | :----------: |
-| Approve or reject a doctor application | ✅    | ✅           |
-| Block or unblock a Doctor             | ✅    | ✅           |
-| Block or unblock a Patient            | ✅    | ✅           |
-| Create a new Admin                    | ✅    | ✅           |
-| Create a new Super Admin              | ❌    | ✅           |
-| Block or unblock an Admin             | ❌    | ✅           |
-| Block or unblock a Super Admin        | ❌    | ✅           |
+| Action                                 | Admin | Super Admin |
+| -------------------------------------- | :---: | :---------: |
+| Approve or reject a doctor application |  ✅   |     ✅      |
+| Block or unblock a Doctor              |  ✅   |     ✅      |
+| Block or unblock a Patient             |  ✅   |     ✅      |
+| Create a new Admin                     |  ✅   |     ✅      |
+| Create a new Super Admin               |  ❌   |     ✅      |
+| Block or unblock an Admin              |  ❌   |     ✅      |
+| Block or unblock a Super Admin         |  ❌   |     ✅      |
 
 In short: Admin can act on doctors and patients freely, but only a Super Admin can act on another Admin or Super Admin — including blocking one.
 
@@ -75,11 +75,11 @@ Every successful login or registration — credential or Google, any role — is
 
 ### 3.8 Welcome emails
 
-| Event                                             | Recipient          | Contains                                                        |
-| --------------------------------------------------- | -------------------- | ------------------------------------------------------------------ |
-| Patient's first registration, right after auto-login | Patient's email       | Welcome message                                                    |
-| Doctor's application gets approved                    | Doctor's email        | Welcome message                                                    |
-| Admin or Super Admin gets created                     | Their **personal** email | Their new **organization** email (their login), their generated password, and a prompt to change that password after logging in |
+| Event                                                | Recipient                | Contains                                                                                                                        |
+| ---------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| Patient's first registration, right after auto-login | Patient's email          | Welcome message                                                                                                                 |
+| Doctor's application gets approved                   | Doctor's email           | Welcome message                                                                                                                 |
+| Admin or Super Admin gets created                    | Their **personal** email | Their new **organization** email (their login), their generated password, and a prompt to change that password after logging in |
 
 ## 4. Admin and Super Admin management
 
@@ -103,24 +103,24 @@ A schedule is what a doctor publishes to say "I'm available on this date, during
 
 ### 6.1 Creating a schedule
 
-| Rule                       | Detail                                                                                       |
-| ---------------------------- | ------------------------------------------------------------------------------------------------ |
-| One schedule per day        | A doctor can have at most one schedule per calendar date.                                        |
-| Time range length            | Minimum 3 hours, maximum 8 hours.                                                                 |
-| Must stay within one day     | Start and end time must be on the same calendar date — e.g. `9:00 AM–5:00 PM` or `3:00 PM–11:00 PM` are fine, but a range like `9:00 PM–3:00 AM` (crossing into the next day) is not allowed. |
-| Meet link                    | The doctor provides a video call link — from whichever video call tool they use — as part of creating the schedule. Every appointment booked into that schedule uses this same link. |
-| Status                       | A schedule starts as **draft**. Patients cannot see it at all until the doctor **publishes** it. |
-| Total slots                  | Calculated automatically: the whole time range divided into 20-minute slots. Example: a `3:00 PM–9:00 PM` schedule is 6 hours (360 minutes), giving 18 slots of 20 minutes each. |
+| Rule                     | Detail                                                                                                                                                                                        |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| One schedule per day     | A doctor can have at most one schedule per calendar date.                                                                                                                                     |
+| Time range length        | Minimum 3 hours, maximum 8 hours.                                                                                                                                                             |
+| Must stay within one day | Start and end time must be on the same calendar date — e.g. `9:00 AM–5:00 PM` or `3:00 PM–11:00 PM` are fine, but a range like `9:00 PM–3:00 AM` (crossing into the next day) is not allowed. |
+| Meet link                | The doctor provides a video call link — from whichever video call tool they use — as part of creating the schedule. Every appointment booked into that schedule uses this same link.          |
+| Status                   | A schedule starts as **draft**. Patients cannot see it at all until the doctor **publishes** it.                                                                                              |
+| Total slots              | Calculated automatically: the whole time range divided into 20-minute slots. Example: a `3:00 PM–9:00 PM` schedule is 6 hours (360 minutes), giving 18 slots of 20 minutes each.              |
 
 ### 6.2 Editing a published schedule
 
 Once published, different parts of a schedule lock at different points:
 
-| Field                          | Can it still be changed?                                                    |
-| --------------------------------- | ---------------------------------------------------------------------------- |
-| **Date**                          | No — locked as soon as the schedule is published.                            |
-| **Time range**                    | Yes, but only until the first appointment is booked into it. Once one slot is booked, the time range is locked (since re-slotting would break already-booked serial numbers). |
-| **Status, meet link, and everything else** | Yes, any time — booking a slot doesn't lock these.                   |
+| Field                                      | Can it still be changed?                                                                                                                                                      |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Date**                                   | No — locked as soon as the schedule is published.                                                                                                                             |
+| **Time range**                             | Yes, but only until the first appointment is booked into it. Once one slot is booked, the time range is locked (since re-slotting would break already-booked serial numbers). |
+| **Status, meet link, and everything else** | Yes, any time — booking a slot doesn't lock these.                                                                                                                            |
 
 ## 7. Patient appointment booking
 
@@ -159,10 +159,10 @@ Once an appointment is **completed**, the doctor can write a prescription for it
 
 Whether a patient gets their money back depends on how close to the schedule's start time they cancel:
 
-| When the patient cancels                                                          | Refund? |
-| ------------------------------------------------------------------------------------- | :-------: |
-| More than 1 hour before the schedule's start time                                     | Yes — cancel and refund |
-| From 1 hour before the start time, through the running schedule, or after it's over    | Cancellation still allowed — no refund |
+| When the patient cancels                                                            |                Refund?                 |
+| ----------------------------------------------------------------------------------- | :------------------------------------: |
+| More than 1 hour before the schedule's start time                                   |        Yes — cancel and refund         |
+| From 1 hour before the start time, through the running schedule, or after it's over | Cancellation still allowed — no refund |
 
 > Example: schedule runs `3:00 PM–9:00 PM`. Cancelling any time before 2:00 PM refunds the payment. Cancelling from 2:00 PM onward — including during the 3–9 PM window itself, or even after 9 PM — still cancels the appointment, but without a refund.
 

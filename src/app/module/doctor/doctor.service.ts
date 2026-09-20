@@ -486,7 +486,7 @@ const getAvailableDoctorByTodaysSchedule = async (query: IQuery) => {
       bio: true,
       consultationFee: true,
       createdAt: true,
-      schedules: {
+      schedule: {
         where: {
           isDeleted: false,
           status: ScheduleStatus.PUBLISHED,

@@ -1,45 +1,23 @@
-import { NextFunction, Request, Response, Router } from "express";
+import { Router } from "express";
 import { Role } from "../../../generated/prisma/enums";
 import { auth } from "../../middleware/checkAuth";
 import { AuthController } from "./auth.controller";
 import { UserValidation } from "./auth.validation";
-import { catchAsync } from "../../utils/catchAsync";
-import z from "zod";
 import { validateRequest } from "../../middleware/validateRequest";
 
 const router = Router();
 
 router.post(
   "/register",
-  // (req: Request, res: Response, next: NextFunction) => {
-  //   try {
-  //     const payload = req.body ?? {};
-  //     const result =
-  //       PatientValidation.patientRegistrationZodSchema.safeParse(payload);
-
-  //     if (!result.success) {
-  //       console.log(result.error);
-  //       console.log(result.error.issues);
-  //       throw new Error(result.error.issues[0].message);
-  //     }
-  //     req.body = result.data;
-
-  //     next();
-  //   } catch (error) {
-  //     next(error);
-  //   }
-  // },
   validateRequest(UserValidation.patientRegistrationZodSchema),
   AuthController.registerPatient,
 );
-
 
 router.post(
   "/verify-email",
   validateRequest(UserValidation.patientEmailVerifyZodSchema),
   AuthController.verifyPatientEmail,
 );
-
 
 router.post(
   "/login",
@@ -66,4 +44,5 @@ router.post(
   validateRequest(UserValidation.ResetPasswordZodSchema),
   AuthController.resetPassword,
 );
+router.post("/logout", AuthController.logout);
 export const AuthRoutes = router;

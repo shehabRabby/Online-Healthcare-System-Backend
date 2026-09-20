@@ -38,7 +38,10 @@ const registerPatient = async (payload: IRegisterPatientPayload) => {
   });
 
   if (isUserExists) {
-    throw new AppError(httpStatus.CONFLICT, "User with this email already exists");
+    throw new AppError(
+      httpStatus.CONFLICT,
+      "User with this email already exists",
+    );
   }
 
   const hashedPassword = await bcrypt.hash(
@@ -49,6 +52,10 @@ const registerPatient = async (payload: IRegisterPatientPayload) => {
   const expirationSeconds = 5 * 60;
   const otpkey = `patient-registration-otp:${email}`;
   const otpValue = crypto.randomInt(100000, 1000000).toString();
+
+  if (config.node_env === "development") {
+    console.log(`[dev] OTP ${email} : ${otpValue}`);
+  }
 
   await redisClient.set(otpkey, otpValue, {
     expiration: {
@@ -315,7 +322,10 @@ const refreshToken = async (token: string) => {
   });
 
   if (!user || user.isDeleted || user.status !== UserStatus.ACTIVE) {
-    throw new AppError(httpStatus.UNAUTHORIZED, "User is inactive or not found");
+    throw new AppError(
+      httpStatus.UNAUTHORIZED,
+      "User is inactive or not found",
+    );
   }
 
   const jwtPayload = {
@@ -353,10 +363,16 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
     googleIdTokenPayload = ticket.getPayload();
   } catch (error) {
     console.log("Google ID Token Verification Error : ", error);
-    throw new AppError(httpStatus.UNAUTHORIZED, "Invalid Or Expired Google Id Token");
+    throw new AppError(
+      httpStatus.UNAUTHORIZED,
+      "Invalid Or Expired Google Id Token",
+    );
   }
   if (!googleIdTokenPayload) {
-    throw new AppError(httpStatus.UNAUTHORIZED, "Invalid Or Expired Google Id Token");
+    throw new AppError(
+      httpStatus.UNAUTHORIZED,
+      "Invalid Or Expired Google Id Token",
+    );
   }
 
   if (!googleIdTokenPayload.email) {
@@ -394,13 +410,19 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
       }
 
       if (ifPatientExistWithCredentials.status === UserStatus.BLOCKED) {
-        throw new AppError(httpStatus.FORBIDDEN, "User is blocked. Please contact support.");
+        throw new AppError(
+          httpStatus.FORBIDDEN,
+          "User is blocked. Please contact support.",
+        );
       }
       if (
         ifPatientExistWithCredentials.isDeleted ||
         ifPatientExistWithCredentials.status === UserStatus.DELETED
       ) {
-        throw new AppError(httpStatus.GONE, "User is deleted. Please contact support.");
+        throw new AppError(
+          httpStatus.GONE,
+          "User is deleted. Please contact support.",
+        );
       }
 
       user = await prisma.user.update({
@@ -455,10 +477,16 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
   }
 
   if (user.status === UserStatus.BLOCKED) {
-    throw new AppError(httpStatus.FORBIDDEN, "User is blocked. Please contact support.");
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "User is blocked. Please contact support.",
+    );
   }
   if (user.isDeleted || user.status === UserStatus.DELETED) {
-    throw new AppError(httpStatus.GONE, "User is deleted. Please contact support.");
+    throw new AppError(
+      httpStatus.GONE,
+      "User is deleted. Please contact support.",
+    );
   }
 
   const jwtPayload = {
