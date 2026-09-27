@@ -25,6 +25,7 @@ import { RequestUser } from "../../middleware/checkAuth";
 import { IQuery } from "../../interfaces";
 import { DoctorWhereInput } from "../../../generated/prisma/models";
 import { addDays, startOfDay } from "date-fns";
+import generateRandomPassword from "../../utils/generateRandomPassword";
 
 const applyAsDoctor = async (
   payload: IApplyAsDoctorPayload,
@@ -70,6 +71,8 @@ const applyAsDoctor = async (
     },
   );
 
+  console.log({ resumeUploadResult });
+
   const additionalFilesUploadResult = await Promise.all(
     additionalFiles.map((file) => {
       return new Promise<UploadApiResponse>((resolve, reject) => {
@@ -98,16 +101,18 @@ const applyAsDoctor = async (
     }),
   );
 
-  const randomDoctorPassword = Math.random().toString(36).slice(-8);
-  const hashPassword = await bcrypt.hash(
-    randomDoctorPassword,
-    Number(config.bcrypt_salt_rounds),
-  );
+  console.log(additionalFilesUploadResult);
+
+  // const randomDoctorPassword = Math.random().toString(36).slice(-8);
+  // const hashPassword = await bcrypt.hash(
+  //   randomDoctorPassword,
+  //   Number(config.bcrypt_salt_rounds),
+  // );
 
   const doctorApplication = await prisma.user.create({
     data: {
       ...payload.user,
-      password: hashPassword,
+      // password: hashPassword,
       role: Role.DOCTOR,
       needPasswordChange: true,
       doctor: {
@@ -253,6 +258,20 @@ const approveDoctor = async (
     );
   }
 
+  const isApproved = verificationStatus === DoctorVerificationStatus.APPROVED;
+
+  const randomDoctorPassword = isApproved
+    ? generateRandomPassword()
+    : undefined;
+
+  if (config.node_env === "development" && randomDoctorPassword) {
+    console.log(`[dev] Random Password plain text: ${randomDoctorPassword}`);
+  }
+
+  const hashedPassword = randomDoctorPassword
+    ? await bcrypt.hash(randomDoctorPassword, Number(config.bcrypt_salt_rounds))
+    : undefined;
+
   const updatedDoctor = await prisma.doctor.update({
     where: { id: doctorId },
     data: {
@@ -263,10 +282,11 @@ const approveDoctor = async (
           : null,
       reviewedBy: reviewer.userId,
       reviewedAt: new Date(),
+      ...(hashedPassword
+        ? { user: { update: { password: hashedPassword } } }
+        : {}),
     },
   });
-
-  const isApproved = verificationStatus === DoctorVerificationStatus.APPROVED;
 
   const tempatePath = path.join(
     process.cwd(),
@@ -442,8 +462,8 @@ const getAvailableDoctorByTodaysSchedule = async (query: IQuery) => {
           startDateTime: {
             gte: startOfToday,
             lt: startOfTomorrow,
-            gt: now,
           },
+          endDateTime: { gt: now },
         },
       },
     },
@@ -494,10 +514,10 @@ const getAvailableDoctorByTodaysSchedule = async (query: IQuery) => {
           startDateTime: {
             gte: startOfToday,
             lt: startOfTomorrow,
-            gt: now,
           },
+          endDateTime: { gt: now },
         },
-        orderBy: { [sortBy]: sortOrder },
+        orderBy: { startDateTime: "asc" },
         select: {
           id: true,
           startDateTime: true,
