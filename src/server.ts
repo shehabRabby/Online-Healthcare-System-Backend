@@ -21,8 +21,15 @@ const main = async () => {
     await redisClient.connect();
     console.log("Redis Conected Successfully");
 
-    await transporter.verify();
-    console.log("Nodemailer Connecter Successfully");
+    try {
+      await transporter.verify();
+      console.log("Nodemailer Connected Successfully");
+    } catch (error) {
+      console.error(
+        "Nodemailer connection failed, emails may not send:",
+        error,
+      );
+    }
 
     await seedSuperAdmin();
     await seedTesterAdmin();
