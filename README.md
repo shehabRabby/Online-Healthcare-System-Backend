@@ -1,5 +1,7 @@
 # Online Healthcare System — Backend
 
+-- https://health-care-backend-flame.vercel.app/
+
 REST API for a doctor-appointment platform: patients book consultations, doctors run them, admins manage the platform. This repo is the backend only.
 
 **Stack:** Node.js · Express 5 · TypeScript · Prisma 7 · PostgreSQL · JWT auth

@@ -103,3 +103,37 @@ D8
 8.Error Class -> Custom App Error Class -> Status Code, message
 9.Global Error Handeler => App Error
 10.res.status -> hard coded status code -> custome status code
+
+
+
+
+
+
+-- package.json e build er vitore tsc dibo jate typeScript etake build kore
+-- tsconfig.json e  "module": "nodenext" | "moduleResolution": "nodenext" kore dibo then package.json e type:"module" delete kore dibo then 
+   schema.prima te moduleFOrmat = "cjs" kore dibo
+
+-- then  npx prisma generate -> npm run build -> npm run start
+-- then root e vercel.json file create and paste this
+
+    {
+  "version": 2,
+  "builds": [
+    {
+      "src": "dist/src/server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "dist/src/server.js"
+    }
+  ]
+}
+
+
+-- after that console ->  vercel login -> vercel deploy -> vercel --prod
+
+
+--Backend URL : https://health-care-backend-flame.vercel.app/
